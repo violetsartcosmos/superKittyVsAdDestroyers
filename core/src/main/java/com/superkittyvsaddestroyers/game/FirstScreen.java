@@ -20,7 +20,9 @@ public class FirstScreen implements Screen {
     private static final float SCREEN_SIZE_HEIGHT = 450f;
     private static final float KITTY_SIZE = 120f;
     private static final float KITTY_SPEED = 240f;
-    private static final int ENEMY_AD_MAX_HEALTH = 3;
+    private static final int ENEMY_AD_MAX_HEALTH = 10;
+    private static final int ENEMY_AD_LOW_HEALTH = 5;
+    private float enemyAdDamageFlashTimer = 0f;
     private static final int KITTY_MAX_HEALTH = 20;
     private static final float KITTY_INVULNERABILITY_DURATION = 5f;
 
@@ -40,7 +42,7 @@ public class FirstScreen implements Screen {
     // EnemyAd
 
     private final Rectangle enemyAdBounds =
-        new Rectangle(550f, 220f, 50f, 50f);
+        new Rectangle(550f, 220f, ENEMY_AD_SIZE, ENEMY_AD_SIZE);
 
     private boolean touchingEnemyAd;
 
@@ -54,12 +56,14 @@ public class FirstScreen implements Screen {
     // Enemy health.
     private int enemyAdHealth = ENEMY_AD_MAX_HEALTH;
     private static final float ENEMY_AD_SPEED = 100f;
+    private static final float ENEMY_AD_SIZE = 100f;
 
     private final Vector2 enemyAdMovement = new Vector2();
 
     private SpriteBatch batch;
     private BitmapFont font;
     private Texture kittyTexture;
+    private Texture enemyAdTexture;
 
     private int score = 0;
 
@@ -80,6 +84,7 @@ public class FirstScreen implements Screen {
             font.setColor(Color.WHITE);
 
             kittyTexture = new Texture(Gdx.files.internal("kittyTiny.png"));
+            enemyAdTexture = new Texture(Gdx.files.internal("nyanKittyMeowMeow.png"));
         }
 
         viewport.update(
@@ -107,6 +112,7 @@ public class FirstScreen implements Screen {
             score = 0;
 
             touchingEnemyAd = false;
+            enemyAdDamageFlashTimer = 0f;
         }
 
         // Count down Kitty's protection after taking damage.
@@ -233,6 +239,11 @@ public class FirstScreen implements Screen {
             0f, kittyAttackFlashTimer - delta
         );
 
+        enemyAdDamageFlashTimer = Math.max(
+            0f,
+            enemyAdDamageFlashTimer - delta
+        );
+
         // Attack once each time Space is pressed.
         if (kittyHealth > 0
             && Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
@@ -243,6 +254,7 @@ public class FirstScreen implements Screen {
 
                 enemyAdHealth--;
                 score += POINTS_PER_HIT;
+                enemyAdDamageFlashTimer = 0.1f;
 
                 if (enemyAdHealth == 0) {
                     score += POINTS_PER_DEFEAT;
@@ -283,21 +295,27 @@ public class FirstScreen implements Screen {
         shapes.setProjectionMatrix(viewport.getCamera().combined);
 
         shapes.begin(ShapeRenderer.ShapeType.Filled);
-
+        batch.setProjectionMatrix(viewport.getCamera().combined);
+        batch.begin();
         // Only draw the enemy while it is alive.
         if (enemyAdHealth > 0) {
-            if (touchingEnemyAd) {
-                shapes.setColor(Color.RED);
+            if (enemyAdDamageFlashTimer > 0f) {
+                batch.setColor(Color.WHITE);
+            } else if (enemyAdHealth <= ENEMY_AD_LOW_HEALTH) {
+                batch.setColor(1f, 0.45f, 0.45f, 1f);
             } else {
-                shapes.setColor(Color.ORANGE);
+                batch.setColor(Color.WHITE);
             }
 
-            shapes.rect(
+            batch.draw(
+                enemyAdTexture,
                 enemyAdBounds.x,
                 enemyAdBounds.y,
-                enemyAdBounds.width,
-                enemyAdBounds.height
+                ENEMY_AD_SIZE,
+                ENEMY_AD_SIZE
             );
+
+            batch.setColor(Color.WHITE);
 
             // Health bar background.
             float healthBarY = enemyAdBounds.y + enemyAdBounds.height + 8f;
@@ -322,7 +340,7 @@ public class FirstScreen implements Screen {
                 6f
             );
         }
-
+        batch.end();
         // Kitty's health bar in the top-left of the game area.
         shapes.setColor(Color.DARK_GRAY);
         shapes.rect(20f, SCREEN_SIZE_HEIGHT - 30f, 120f, 12f);
@@ -414,9 +432,9 @@ public class FirstScreen implements Screen {
             font.setColor(Color.GREEN);
             font.draw(
                 batch,
-                "YOU WIN! Press R to play again.",
+                "KITTIES ALWAYS WIN! Press R to play again.",
                 260f,
-                SCREEN_SIZE_HEIGHT / 2f
+                SCREEN_SIZE_HEIGHT / 4f
             );
         }
 
@@ -459,6 +477,11 @@ public class FirstScreen implements Screen {
         if (kittyTexture != null) {
             kittyTexture.dispose();
             kittyTexture = null;
+        }
+
+        if (enemyAdTexture != null) {
+            enemyAdTexture.dispose();
+            enemyAdTexture = null;
         }
 
         if (batch != null) {
