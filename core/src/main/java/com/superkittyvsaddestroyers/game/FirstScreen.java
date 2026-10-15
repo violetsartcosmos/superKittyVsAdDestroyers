@@ -18,7 +18,7 @@ import com.badlogic.gdx.graphics.Texture;
 public class FirstScreen implements Screen {
     private static final float SCREEN_SIZE_WIDTH = 800f;
     private static final float SCREEN_SIZE_HEIGHT = 450f;
-    private static final float KITTY_SIZE = 40f;
+    private static final float KITTY_SIZE = 120f;
     private static final float KITTY_SPEED = 240f;
     private static final int ENEMY_AD_MAX_HEALTH = 3;
     private static final int KITTY_MAX_HEALTH = 20;
@@ -358,6 +358,23 @@ public class FirstScreen implements Screen {
         batch.setProjectionMatrix(viewport.getCamera().combined);
         batch.begin();
 
+        if (kittyHealth <= 0) {
+            batch.setColor(Color.GRAY);
+        } else if (kittyInvulnerabilityTimer > 0f) {
+            batch.setColor(1f, 1f, 1f, 0.6f);
+        } else {
+            batch.setColor(Color.WHITE);
+        }
+
+        batch.draw(
+            kittyTexture,
+            kittyX,
+            kittyY,
+            KITTY_SIZE,
+            KITTY_SIZE
+        );
+
+        batch.setColor(Color.WHITE);
         font.setColor(Color.WHITE);
 
         // Health
@@ -437,6 +454,11 @@ public class FirstScreen implements Screen {
         if (shapes != null) {
             shapes.dispose();
             shapes = null;
+        }
+
+        if (kittyTexture != null) {
+            kittyTexture.dispose();
+            kittyTexture = null;
         }
 
         if (batch != null) {
