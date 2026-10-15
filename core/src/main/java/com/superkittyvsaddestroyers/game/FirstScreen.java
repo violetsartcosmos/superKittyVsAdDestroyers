@@ -13,11 +13,12 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.utils.Align;
 
 /** Home Screen */
 public class FirstScreen implements Screen {
-    private static final float SCREEN_SIZE_WIDTH = 800f;
-    private static final float SCREEN_SIZE_HEIGHT = 450f;
+    private static final float SCREEN_SIZE_WIDTH = 960f;
+    private static final float SCREEN_SIZE_HEIGHT = 540f;
     private static final float KITTY_SIZE = 120f;
     private static final float KITTY_SPEED = 240f;
     private static final int ENEMY_AD_MAX_HEALTH = 10;
@@ -81,6 +82,7 @@ public class FirstScreen implements Screen {
         if (batch == null) {
             batch = new SpriteBatch();
             font = new BitmapFont();
+            font.getData().setScale(3f);
             font.setColor(Color.WHITE);
 
             kittyTexture = new Texture(Gdx.files.internal("kittyTiny.png"));
@@ -317,45 +319,57 @@ public class FirstScreen implements Screen {
 
             batch.setColor(Color.WHITE);
 
-            // Health bar background.
-            float healthBarY = enemyAdBounds.y + enemyAdBounds.height + 8f;
-
-            shapes.setColor(Color.DARK_GRAY);
-            shapes.rect(
-                enemyAdBounds.x,
-                healthBarY,
-                enemyAdBounds.width,
-                6f
-            );
-
-            // Remaining health.
-            float healthFraction =
-                (float) enemyAdHealth / ENEMY_AD_MAX_HEALTH;
-
-            shapes.setColor(Color.GREEN);
-            shapes.rect(
-                enemyAdBounds.x,
-                healthBarY,
-                enemyAdBounds.width * healthFraction,
-                6f
-            );
         }
         batch.end();
-        // Kitty's health bar in the top-left of the game area.
+
+        // Tekken-style health bars.
+        float healthBarHeight = 24f;
+        float healthBarY = SCREEN_SIZE_HEIGHT - 44f;
+        float healthBarWidth = 300f;
+        float healthBarMargin = 20f;
+
+        // Kitty's health bar: fills from the left.
         shapes.setColor(Color.DARK_GRAY);
-        shapes.rect(20f, SCREEN_SIZE_HEIGHT - 30f, 120f, 12f);
-
-        float kittyHealthFraction =
-            (float) kittyHealth / KITTY_MAX_HEALTH;
-
-        shapes.setColor(Color.RED);
         shapes.rect(
-            20f,
-            SCREEN_SIZE_HEIGHT - 30f,
-            120f * kittyHealthFraction,
-            12f
+            healthBarMargin,
+            healthBarY,
+            healthBarWidth,
+            healthBarHeight
         );
 
+
+        shapes.setColor(Color.PINK);
+        float kittyHealthFraction =
+            (float) kittyHealth / KITTY_MAX_HEALTH;
+        shapes.rect(
+            healthBarMargin,
+            healthBarY,
+            healthBarWidth * kittyHealthFraction,
+            healthBarHeight
+        );
+
+        // Ad Destroyer's health bar: fills from the right.
+        float enemyBarX =
+            SCREEN_SIZE_WIDTH - healthBarMargin - healthBarWidth;
+
+        shapes.setColor(Color.DARK_GRAY);
+        shapes.rect(
+            enemyBarX,
+            healthBarY,
+            healthBarWidth,
+            healthBarHeight
+        );
+
+        float enemyHealthFraction =
+            (float) enemyAdHealth / ENEMY_AD_MAX_HEALTH;
+
+        shapes.setColor(Color.ORANGE);
+        shapes.rect(
+            enemyBarX + healthBarWidth * (1f - enemyHealthFraction),
+            healthBarY,
+            healthBarWidth * enemyHealthFraction,
+            healthBarHeight
+        );
         shapes.end();
 
         // Draw the attack outline in a separate line-rendering pass.
@@ -394,47 +408,79 @@ public class FirstScreen implements Screen {
 
         batch.setColor(Color.WHITE);
         font.setColor(Color.WHITE);
+        // Score in the top-center.
+        font.setColor(Color.WHITE);
 
-        // Health
-        font.draw(
-            batch,
-            "Kitty health: " + kittyHealth + " / " + KITTY_MAX_HEALTH,
-            20f,
-            SCREEN_SIZE_HEIGHT - 45f
-        );
-
-        // Score in the upper-right
         font.draw(
             batch,
             "Score: " + score,
-            SCREEN_SIZE_WIDTH - 180f,
-            SCREEN_SIZE_HEIGHT - 20f
+            0f,
+            SCREEN_SIZE_HEIGHT - 12f,
+            SCREEN_SIZE_WIDTH,
+            Align.center,
+            false
         );
 
-        // Controls near the bottom
+        // Health numbers beneath each health bar.
         font.draw(
             batch,
-            "WASD / Arrows: move    Space: attack    R: restart",
-            20f,
-            25f
+            String.valueOf(kittyHealth),
+            healthBarMargin + 8f,
+            healthBarY - 8f
         );
 
-        // Display outcome.
+        // Enemy health beneath the right bar.
+        font.draw(
+            batch,
+            String.valueOf(enemyAdHealth),
+            20f,
+            healthBarY - 8f,
+            SCREEN_SIZE_WIDTH - 40f,
+            Align.right,
+            false
+        );
+
+        // Smaller controls above the bottom edge.
+        font.getData().setScale(2f);
+        font.setColor(Color.WHITE);
+
+        font.draw(
+            batch,
+            "WASD/Arrows: move   Space: attack   R: restart",
+            20f,
+            85f,
+            SCREEN_SIZE_WIDTH - 40f,
+            Align.center,
+            true
+        );
+
+        // Restore the larger size for the other text.
+        font.getData().setScale(3f);
+
+        // Display the outcome
         if (kittyHealth <= 0) {
             font.setColor(Color.RED);
+
             font.draw(
                 batch,
-                "GAME OVER! Press R to restart.",
-                260f,
-                SCREEN_SIZE_HEIGHT / 2f
+                "GAME OVER!\nPress R to restart.",
+                20f,
+                SCREEN_SIZE_HEIGHT / 2f + 40f,
+                SCREEN_SIZE_WIDTH - 40f,
+                Align.center,
+                true
             );
         } else if (enemyAdHealth <= 0) {
             font.setColor(Color.GREEN);
+
             font.draw(
                 batch,
-                "KITTIES ALWAYS WIN! Press R to play again.",
-                260f,
-                SCREEN_SIZE_HEIGHT / 4f
+                "KITTIES ALWAYS WIN!\nPress R to play again.",
+                20f,
+                SCREEN_SIZE_HEIGHT / 2f + 40f,
+                SCREEN_SIZE_WIDTH - 40f,
+                Align.center,
+                true
             );
         }
 
