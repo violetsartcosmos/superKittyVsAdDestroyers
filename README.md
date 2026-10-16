@@ -83,6 +83,7 @@ Scoring:
 Additional 100 points when enemy health reaches zero.
 One three-hit enemy gives 130 total points.
 Misses and attacks on a defeated enemy give no points.
-
-Create a jar:
-java -jar "lwjgl3/build/libs/SuperKittyVsAdDestroyers-1.0.0.jar"
+Create the jar:
+    ./gradlew lwjgl3:dist
+Run the jar:
+    java -jar "lwjgl3/build/libs/SuperKittyVsAdDestroyers-1.0.0.jar"
