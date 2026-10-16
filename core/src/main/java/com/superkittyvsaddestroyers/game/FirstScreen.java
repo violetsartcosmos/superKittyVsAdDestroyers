@@ -85,7 +85,7 @@ public class FirstScreen implements Screen {
             font.getData().setScale(3f);
             font.setColor(Color.WHITE);
 
-            kittyTexture = new Texture(Gdx.files.internal("kittyTiny.png"));
+            kittyTexture = new Texture(Gdx.files.internal("kittyPurples.png"));
             enemyAdTexture = new Texture(Gdx.files.internal("nyanKittyMeowMeow.png"));
         }
 
